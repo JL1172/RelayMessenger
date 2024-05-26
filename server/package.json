@@ -1,0 +1,24 @@
+{
+  "name": "secure-chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "cd src && npx ts-node server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/readline-sync": "^1.4.8",
+    "@types/ws": "^8.5.10",
+    "dotenv": "^16.4.5"
+  },
+  "dependencies": {
+    "readline-sync": "^1.4.10",
+    "ts-node": "^10.9.2",
+    "ws": "^8.17.0"
+  }
+}
