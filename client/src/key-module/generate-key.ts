@@ -8,11 +8,18 @@ import { main } from "../main";
 
 const file: string = "../.rsa.json";
 
-function reportErr(err: string) {
-  console.error(`Error running script: ${err}, terminating process.`);
-  process.exit(1);
+function packageError(err: string) {
+  throw new Error(err);
 }
-function generateKey(): { PUB: string; PRIV: string } {
+
+function reportErr(err: string) {
+  console.error(
+    chalk.redBright(
+      `Error running script: ${err}, terminating process. Proceeding To Main Menu`
+    )
+  );
+}
+function generateKey() {
   try {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
@@ -23,39 +30,43 @@ function generateKey(): { PUB: string; PRIV: string } {
     const PRIV = JSON.stringify(
       privateKey.export({ type: "pkcs1", format: "pem" })
     );
+    if (!PUB || !PRIV) {
+      packageError("Error Generating Keys.");
+    }
     return { PUB, PRIV };
-  } catch (err) {
-    reportErr(err + "generate key");
+  } catch (err: any) {
+    packageError(
+      err.message ? err.message : "Error Generating Keys. Internal Issue."
+    );
   }
   return { PUB: "", PRIV: "" };
 }
 async function readFile(): Promise<any | void> {
-  try {
-    return await new Promise((resolve, reject) => {
-      fs.readFile(file, "utf-8", (err, data) => {
-        if (err) {
-          reject(err);
+  return await new Promise((resolve, reject) => {
+    fs.readFile(file, "utf-8", (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        if (!data) {
+          reject("Unable To Parse Key File.");
         } else {
-          resolve(data);
+          resolve(JSON.parse(data));
         }
-      });
+      }
     });
-  } catch (err) {
-    reportErr(err + "read file");
-  }
+  });
 }
-function writeToFile(jsonObject: any, pubKey: string, privKey: string) {
+async function writeToFile(jsonObject: any, pubKey: string, privKey: string) {
   try {
     jsonObject.LOCAL_RSA_PUBLIC = pubKey;
-    jsonObject.LOCAL_RSA_PRIVATE = privKey;
     const moddedJson = JSON.stringify(jsonObject, null, 2);
     fs.writeFile(file, moddedJson, { encoding: "utf-8" }, (err) => {
       if (err) {
-        throw new Error(err + "");
+        packageError(err + "");
       }
     });
   } catch (err) {
-    reportErr(err + "write to file");
+    packageError(err + "write to file");
   }
 }
 
@@ -68,21 +79,27 @@ function decidePath() {
   return result;
 }
 export async function generateKeyMain() {
-  console.clear();
-  displayHeading();
-  const res = decidePath();
-  if (res === 0) {
-    const { PUB, PRIV } = generateKey();
-    if (!PUB || !PRIV) {
-      reportErr("Error Generating Keys.");
+  try {
+    console.clear();
+    displayHeading();
+    const res = decidePath();
+    if (res === 0) {
+      const { PUB, PRIV } = generateKey();
+      const jsonData = await readFile();
+      writeToFile(jsonData, PUB, PRIV);
+      console.log(
+        chalk.blue(
+          "Successfully Generated New Pub And Private Keys. Returning To Main Directory."
+        )
+      );
     }
-    console.log(PUB);
-    const jsonData = await readFile();
-    console.log(jsonData);
-    writeToFile(jsonData, PUB, PRIV);
-    console.log(
-      "Successfully Generated New Pub And Private Keys. Returning To Main Directory."
-    );
+    setTimeout(() => {
+      main();
+    }, 1000);
+  } catch (err: any) {
+    reportErr(err.message ? err.message : err);
+    setTimeout(() => {
+      main();
+    }, 4000);
   }
-  // main();
 }
