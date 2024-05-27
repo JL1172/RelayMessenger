@@ -1,16 +1,18 @@
 import * as rl from "readline-sync";
 import { heading } from "./components/heading";
 import { generateKeyMain } from "./key-module/generate-key";
+import chalk from "chalk";
 
 function displayHeading() {
-  console.log(heading());
+  console.log(chalk.green(heading()));
 }
 function displayDirectories() {
-  const paths = ["Key Generation", "Secure Chat Module"];
-  const userChoice = rl.keyInSelect(paths);
+  const paths = ["RSA Module", "Chat Module", "Close Program"];
+  const userChoice = rl.keyInSelect(paths, "", { cancel: false });
   return userChoice;
 }
-function main() {
+export function main() {
+  console.clear();
   displayHeading();
   const result = displayDirectories();
   switch (result) {
@@ -19,6 +21,9 @@ function main() {
       break;
     case 1:
       break;
+    case 2:
+      console.log(chalk.red("Closing Program"));
+      process.exit(1);
     default:
       process.exit(1);
   }

@@ -3,6 +3,8 @@ import fs from "fs";
 import { keyGenHeading } from "../components/key-gen-heading";
 import * as rl from "readline-sync";
 import { exec } from "child_process";
+import chalk from "chalk";
+import { main } from "../main";
 
 const file: string = "../.rsa.json";
 
@@ -34,7 +36,7 @@ async function readFile(): Promise<any | void> {
         if (err) {
           reject(err);
         } else {
-          resolve(JSON.parse(data));
+          resolve(data);
         }
       });
     });
@@ -58,20 +60,29 @@ function writeToFile(jsonObject: any, pubKey: string, privKey: string) {
 }
 
 function displayHeading() {
-  console.log(keyGenHeading());
+  console.log(chalk.blue(keyGenHeading()));
+}
+function decidePath() {
+  const choices = ["Generate New Key Pair", "Return To Main Menu"];
+  const result = rl.keyInSelect(choices, "", { cancel: false });
+  return result;
 }
 export async function generateKeyMain() {
+  console.clear();
   displayHeading();
-  const { PUB, PRIV } = generateKey();
-  if (!PUB || !PRIV) {
-    reportErr("Error Generating Keys.");
-  }
-  const jsonData = await readFile();
-  writeToFile(jsonData, PUB, PRIV);
-  console.log("Successfully Generated New Pub And Private Keys. Returning To Main Directory.");
-  exec("npm run start", (stdout, stderr, error: any) => {
-    if (error) {
-      reportErr("Error Returning To Root, Restart Program.");
+  const res = decidePath();
+  if (res === 0) {
+    const { PUB, PRIV } = generateKey();
+    if (!PUB || !PRIV) {
+      reportErr("Error Generating Keys.");
     }
-  });
+    console.log(PUB);
+    const jsonData = await readFile();
+    console.log(jsonData);
+    writeToFile(jsonData, PUB, PRIV);
+    console.log(
+      "Successfully Generated New Pub And Private Keys. Returning To Main Directory."
+    );
+  }
+  // main();
 }
