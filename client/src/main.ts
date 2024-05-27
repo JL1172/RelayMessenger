@@ -19,6 +19,8 @@ function main() {
       break;
     case 1:
       break;
+    default:
+      process.exit(1);
   }
 }
 

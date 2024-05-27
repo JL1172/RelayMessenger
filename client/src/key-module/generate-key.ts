@@ -1,7 +1,8 @@
 import crypto from "crypto";
 import fs from "fs";
-import { heading } from "../components/heading";
-import * as rl from 'readline-sync'; 
+import { keyGenHeading } from "../components/key-gen-heading";
+import * as rl from "readline-sync";
+import { exec } from "child_process";
 
 const file: string = "../.rsa.json";
 
@@ -57,7 +58,7 @@ function writeToFile(jsonObject: any, pubKey: string, privKey: string) {
 }
 
 function displayHeading() {
-  console.log(heading());
+  console.log(keyGenHeading());
 }
 export async function generateKeyMain() {
   displayHeading();
@@ -67,6 +68,10 @@ export async function generateKeyMain() {
   }
   const jsonData = await readFile();
   writeToFile(jsonData, PUB, PRIV);
-  console.log("Successfully Generated New Pub And Private Keys.");
+  console.log("Successfully Generated New Pub And Private Keys. Returning To Main Directory.");
+  exec("npm run start", (stdout, stderr, error: any) => {
+    if (error) {
+      reportErr("Error Returning To Root, Restart Program.");
+    }
+  });
 }
-
