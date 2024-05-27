@@ -1,22 +1,36 @@
+import ora from "ora";
 import crypto from "crypto";
 import fs from "fs";
 import { keyGenHeading } from "../components/key-gen-heading";
 import * as rl from "readline-sync";
-import { exec } from "child_process";
 import chalk from "chalk";
 import { main } from "../main";
 
-const file: string = "../.rsa.json";
+const spinner: ora.Ora = ora();
+const file: string = "./.rsa.json";
 
 function packageError(err: string) {
   throw new Error(err);
 }
 
 function reportErr(err: string) {
-  console.error(
-    chalk.redBright(
-      `Error running script: ${err}, terminating process. Proceeding To Main Menu`
-    )
+  spinner.fail(
+    chalk.redBright(`Error running script: ${err}. Proceeding To Menu`)
+  );
+}
+function createRsaFile() {
+  fs.writeFile(
+    ".rsa.json",
+    JSON.stringify(
+      {
+        LOCAL_RSA_PUBLIC: "",
+        LOCAL_RSA_PRIVATE: "",
+        REMOTE_RSA_PRIV: "",
+      },
+      null,
+      2
+    ),
+    () => {}
   );
 }
 function generateKey() {
@@ -45,12 +59,30 @@ async function readFile(): Promise<any | void> {
   return await new Promise((resolve, reject) => {
     fs.readFile(file, "utf-8", (err, data) => {
       if (err) {
-        reject(err);
+        reject(
+          err + `Press ${chalk.blue("Reset RSA File")} Option To Reset File.`
+        );
       } else {
         if (!data) {
-          reject("Unable To Parse Key File.");
+          reject(
+            `Unable To Parse Key File, Improper Format, Press ${chalk.blue(
+              "Reset RSA File"
+            )} Option To Reset File.`
+          );
         } else {
-          resolve(JSON.parse(data));
+          const parsed = JSON.parse(data);
+          if (
+            !("LOCAL_RSA_PUBLIC" in parsed) ||
+            !("LOCAL_RSA_PRIVATE" in parsed)
+          ) {
+            reject(
+              `Unable To Parse Key File, Improper Format, Press ${chalk.blue(
+                "Reset RSA File"
+              )} Option To Reset File.`
+            );
+          } else {
+            resolve(JSON.parse(data));
+          }
         }
       }
     });
@@ -76,9 +108,9 @@ function displayHeading() {
 }
 function decidePath() {
   const choices = [
-    "Generate New Key Pair",
-    "Clear Keys",
-    "Return To Main Menu",
+    "Generate New Key",
+    "Reset RSA File",
+    "Main Menu",
     "Close Program",
   ];
   const result = rl.keyInSelect(choices, "", { cancel: false });
@@ -90,31 +122,37 @@ export async function generateKeyMain() {
     displayHeading();
     const res = decidePath();
     if (res === 0) {
+      spinner.start();
       const { PUB, PRIV } = generateKey();
       const jsonData = await readFile();
       writeToFile(jsonData, PUB, PRIV);
-      console.log(
-        chalk.blue(
-          "Successfully Generated New Pub And Private Keys. Returning To Main Directory."
-        )
+      spinner.succeed(
+        chalk.blue("Successfully Generated New Pub And Private Keys")
       );
+      setTimeout(() => {
+        generateKeyMain();
+      }, 1000);
     } else if (res === 1) {
-      const jsonData = await readFile();
-      writeToFile(jsonData, "", "");
-      console.log(
-        chalk.blue("Successfully Cleared Keys. Returning To Main Directory.")
-      );
+      spinner.start();
+      createRsaFile();
+      spinner.succeed(chalk.blue("Successfully Reset RSA File."));
+      setTimeout(() => {
+        generateKeyMain();
+      }, 1000);
     } else if (res === 3) {
       console.log(chalk.red("Exiting Program."));
       process.exit(1);
+    } else if (res === 2) {
+      spinner.start(chalk.blue("Returning To Main Menu."));
+      setTimeout(() => {
+        main();
+        spinner.stop();
+      }, 1000);
     }
-    setTimeout(() => {
-      main();
-    }, 2000);
   } catch (err: any) {
     reportErr(err.message ? err.message : err);
     setTimeout(() => {
-      main();
+      generateKeyMain();
     }, 4000);
   }
 }

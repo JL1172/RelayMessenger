@@ -1,3 +1,4 @@
+import { mainChat } from "./chat-module/chat";
 import * as rl from "readline-sync";
 import { heading } from "./components/heading";
 import { generateKeyMain } from "./key-module/generate-key";
@@ -20,6 +21,7 @@ export function main() {
       generateKeyMain();
       break;
     case 1:
+      mainChat();
       break;
     case 2:
       console.log(chalk.red("Closing Program"));
