@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate": "cd scripts && ts-node generate-key.ts"
+    "start": "cd src && ts-node directory.ts"
   },
   "keywords": [],
   "author": "",

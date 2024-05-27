@@ -1,7 +1,9 @@
 import crypto from "crypto";
 import fs from "fs";
+import { heading } from "../components/heading";
+import * as rl from 'readline-sync'; 
 
-const file: string = "../.RSA.json";
+const file: string = "../.rsa.json";
 
 function reportErr(err: string) {
   console.error(`Error running script: ${err}, terminating process.`);
@@ -31,7 +33,7 @@ async function readFile(): Promise<any | void> {
         if (err) {
           reject(err);
         } else {
-          resolve(data);
+          resolve(JSON.parse(data));
         }
       });
     });
@@ -42,25 +44,29 @@ async function readFile(): Promise<any | void> {
 function writeToFile(jsonObject: any, pubKey: string, privKey: string) {
   try {
     jsonObject.LOCAL_RSA_PUBLIC = pubKey;
-    jsonObject.LOCAL_RSA_PRIVATE = privKey + "";
+    jsonObject.LOCAL_RSA_PRIVATE = privKey;
     const moddedJson = JSON.stringify(jsonObject, null, 2);
     fs.writeFile(file, moddedJson, { encoding: "utf-8" }, (err) => {
-      throw new Error(err + "");
+      if (err) {
+        throw new Error(err + "");
+      }
     });
   } catch (err) {
     reportErr(err + "write to file");
   }
 }
 
-async function main() {
+function displayHeading() {
+  console.log(heading());
+}
+export async function generateKeyMain() {
+  displayHeading();
   const { PUB, PRIV } = generateKey();
   if (!PUB || !PRIV) {
     reportErr("Error Generating Keys.");
   }
   const jsonData = await readFile();
-  console.log(jsonData);
-  process.exit(1);
-  writeToFile(JSON.parse(jsonData), PUB, PRIV);
+  writeToFile(jsonData, PUB, PRIV);
+  console.log("Successfully Generated New Pub And Private Keys.");
 }
 
-main();
