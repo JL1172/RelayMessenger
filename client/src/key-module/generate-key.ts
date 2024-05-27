@@ -59,6 +59,7 @@ async function readFile(): Promise<any | void> {
 async function writeToFile(jsonObject: any, pubKey: string, privKey: string) {
   try {
     jsonObject.LOCAL_RSA_PUBLIC = pubKey;
+    jsonObject.LOCAL_RSA_PRIVATE = privKey;
     const moddedJson = JSON.stringify(jsonObject, null, 2);
     fs.writeFile(file, moddedJson, { encoding: "utf-8" }, (err) => {
       if (err) {
@@ -74,7 +75,12 @@ function displayHeading() {
   console.log(chalk.blue(keyGenHeading()));
 }
 function decidePath() {
-  const choices = ["Generate New Key Pair", "Return To Main Menu"];
+  const choices = [
+    "Generate New Key Pair",
+    "Clear Keys",
+    "Return To Main Menu",
+    "Close Program",
+  ];
   const result = rl.keyInSelect(choices, "", { cancel: false });
   return result;
 }
@@ -92,10 +98,19 @@ export async function generateKeyMain() {
           "Successfully Generated New Pub And Private Keys. Returning To Main Directory."
         )
       );
+    } else if (res === 1) {
+      const jsonData = await readFile();
+      writeToFile(jsonData, "", "");
+      console.log(
+        chalk.blue("Successfully Cleared Keys. Returning To Main Directory.")
+      );
+    } else if (res === 3) {
+      console.log(chalk.red("Exiting Program."));
+      process.exit(1);
     }
     setTimeout(() => {
       main();
-    }, 1000);
+    }, 2000);
   } catch (err: any) {
     reportErr(err.message ? err.message : err);
     setTimeout(() => {
