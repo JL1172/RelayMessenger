@@ -82,7 +82,7 @@ export async function mainChat() {
       spinner.start(chalk.cyan("Validating Keys"));
       const keys = await validateKeys();
       spinner.succeed(chalk.cyan("Keys Validated."));
-      const ws = new WebSocket(process.env.URL + "");
+      const ws = new WebSocket("ws://localhost:8080");
       spinner.start(chalk.cyan("Connecting To Server."));
       ws.on("open", () => {
         spinner.succeed(chalk.cyan("Connected To Server."));
