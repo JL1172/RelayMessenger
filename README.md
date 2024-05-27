@@ -63,3 +63,11 @@ End-to-end encryption (E2EE) ensures that data being transmitted between two par
 3. **Decryption at Receiver**:
    - The recipient decrypts the symmetric key using their private RSA key.
    - The recipient then uses the symmetric key to decrypt the message.
+
+## Contributing
+1. Fork the repository.
+2. Create a new branch (git checkout -b feature-branch).
+3. Make your changes.
+4. Commit your changes (git commit -m 'Add new feature').
+5. Push to the branch (git push origin feature-branch).
+6. Open a pull request.
