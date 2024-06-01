@@ -10,7 +10,7 @@ import "dotenv/config";
 
 const spinner: ora.Ora = ora();
 const files = [
-  "./local_public_key.pem",
+  "./.local_public_key.pem",
   "./.local_private_key.pem",
   "./.remote_public_key.pem",
 ];
