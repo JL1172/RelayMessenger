@@ -9,7 +9,12 @@ import ora from "ora";
 import "dotenv/config";
 
 const spinner: ora.Ora = ora();
-const file = "./.rsa.json";
+const files = [
+  "./local_public_key.pem",
+  "./.local_private_key.pem",
+  "./.remote_public_key.pem",
+];
+const messages: string[] = [];
 
 function packageError(err: string) {
   throw new Error(err);
@@ -20,7 +25,7 @@ function reportError(err: string) {
   );
 }
 
-async function validateKeys() {
+async function validateKeys(file: string) {
   return await new Promise((resolve, reject) => {
     fs.readFile(file, "utf-8", (err, data) => {
       if (err) {
@@ -29,17 +34,7 @@ async function validateKeys() {
         if (!data) {
           reject("Error, Keys Do Not Exist. Proceed To Generate Keys Module.");
         } else {
-          const parsed = JSON.parse(data);
-          if (
-            !("LOCAL_RSA_PUBLIC" in parsed) ||
-            !("LOCAL_RSA_PRIVATE" in parsed)
-          ) {
-            reject(
-              "Error: Keys Do Not Exist. Proceed To Generate Keys Module."
-            );
-          } else {
-            resolve(parsed);
-          }
+          resolve(data);
         }
       }
     });
@@ -79,22 +74,30 @@ export async function mainChat() {
         spinner.stop();
       }, 1000);
     } else if (res === 0) {
+      console.log(
+        chalk.bgCyanBright(chalk.black("Press Chat Option 3 Times."))
+      );
       spinner.start(chalk.cyan("Validating Keys"));
-      const keys = await validateKeys();
+      const pubKey: any = await validateKeys(files[0]);
+      const privKey: any = await validateKeys(files[1]);
+      const rpubKey: any = await validateKeys(files[2]);
       spinner.succeed(chalk.cyan("Keys Validated."));
       const ws = new WebSocket("ws://localhost:8080");
       spinner.start(chalk.cyan("Connecting To Server."));
       ws.on("open", () => {
         spinner.succeed(chalk.cyan("Connected To Server."));
-        const message = rl.question("You: ");
-        const encryptedMessage = encrypt(
-          message,
-          (keys as any).REMOTE_RSA_PRIV
-        );
-        ws.send(encryptedMessage);
+        console.log(chalk.cyan('Type "exit" to leave chat.\n'));
+        while (true) {
+          const message = rl.question("Enter Your Message: ");
+          if (message === "exit") {
+            ws.close();
+          }
+            const encryptedMessage = encrypt(message, rpubKey);
+            ws.send(encryptedMessage);
+        }
       });
       ws.on("message", (data: any) => {
-        const decryptedMessage = decrypt(data, (keys as any).LOCAL_RSA_PRIVATE);
+        const decryptedMessage = decrypt(data, privKey);
         console.log(chalk.cyan(`Unknown Sender: ${decryptedMessage}`));
       });
       ws.on("close", () => {

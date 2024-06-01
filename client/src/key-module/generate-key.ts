@@ -1,13 +1,17 @@
 import ora from "ora";
 import crypto from "crypto";
-import fs from "fs";
+import fs, { read } from "fs";
 import { keyGenHeading } from "../components/key-gen-heading";
 import * as rl from "readline-sync";
 import chalk from "chalk";
 import { main } from "../main";
 
 const spinner: ora.Ora = ora();
-const file: string = "./.rsa.json";
+const files: string[] = [
+  "./.local_public_key.pem",
+  "./.local_private_key.pem",
+  "./.remote_public_key.pem",
+];
 
 function packageError(err: string) {
   throw new Error(err);
@@ -19,31 +23,17 @@ function reportErr(err: string) {
   );
 }
 function createRsaFile() {
-  fs.writeFile(
-    ".rsa.json",
-    JSON.stringify(
-      {
-        LOCAL_RSA_PUBLIC: "",
-        LOCAL_RSA_PRIVATE: "",
-        REMOTE_RSA_PRIV: "",
-      },
-      null,
-      2
-    ),
-    () => {}
-  );
+  fs.writeFile(".local_public_key.pem", "", () => {});
+  fs.writeFile(".local_private_key.pem", "", () => {});
+  fs.writeFile(".remote_public_key.pem", "", () => {});
 }
 function generateKey() {
   try {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     });
-    const PUB = JSON.stringify(
-      publicKey.export({ type: "pkcs1", format: "pem" })
-    );
-    const PRIV = JSON.stringify(
-      privateKey.export({ type: "pkcs1", format: "pem" })
-    );
+    const PUB = publicKey.export({ type: "pkcs1", format: "pem" });
+    const PRIV = privateKey.export({ type: "pkcs1", format: "pem" });
     if (!PUB || !PRIV) {
       packageError("Error Generating Keys.");
     }
@@ -55,7 +45,8 @@ function generateKey() {
   }
   return { PUB: "", PRIV: "" };
 }
-async function readFile(): Promise<any | void> {
+//!deprecated keeping just in case for reference
+async function readFile(file: string): Promise<any | void> {
   return await new Promise((resolve, reject) => {
     fs.readFile(file, "utf-8", (err, data) => {
       if (err) {
@@ -70,7 +61,7 @@ async function readFile(): Promise<any | void> {
             )} Option To Reset File.`
           );
         } else {
-          const parsed = JSON.parse(data);
+          const parsed: any = data;
           if (
             !("LOCAL_RSA_PUBLIC" in parsed) ||
             !("LOCAL_RSA_PRIVATE" in parsed)
@@ -81,26 +72,28 @@ async function readFile(): Promise<any | void> {
               )} Option To Reset File.`
             );
           } else {
-            resolve(JSON.parse(data));
+            resolve(parsed);
           }
         }
       }
     });
   });
 }
-async function writeToFile(jsonObject: any, pubKey: string, privKey: string) {
-  try {
-    jsonObject.LOCAL_RSA_PUBLIC = pubKey;
-    jsonObject.LOCAL_RSA_PRIVATE = privKey;
-    const moddedJson = JSON.stringify(jsonObject, null, 2);
-    fs.writeFile(file, moddedJson, { encoding: "utf-8" }, (err) => {
-      if (err) {
-        packageError(err + "");
-      }
-    });
-  } catch (err) {
-    packageError(err + "write to file");
-  }
+async function writeToFile(pubKey: string | Buffer, privKey: string | Buffer) {
+  fs.writeFile(files[0], pubKey, { encoding: "utf-8" }, (err) => {
+    if (err) {
+      packageError(err + "");
+    } else {
+      console.log("pub key file created successfully.");
+    }
+  });
+  fs.writeFile(files[1], privKey, { encoding: "utf-8" }, (err) => {
+    if (err) {
+      packageError(err + "");
+    } else {
+      console.log("priv key file created succesfully.");
+    }
+  });
 }
 
 function displayHeading() {
@@ -109,7 +102,7 @@ function displayHeading() {
 function decidePath() {
   const choices = [
     "Generate New Key",
-    "Reset RSA File",
+    // "Reset RSA File",
     "Main Menu",
     "Close Program",
   ];
@@ -124,25 +117,25 @@ export async function generateKeyMain() {
     if (res === 0) {
       spinner.start();
       const { PUB, PRIV } = generateKey();
-      const jsonData = await readFile();
-      writeToFile(jsonData, PUB, PRIV);
+      await writeToFile(PUB, PRIV);
       spinner.succeed(
         chalk.blue("Successfully Generated New Pub And Private Keys")
       );
       setTimeout(() => {
         generateKeyMain();
       }, 1000);
-    } else if (res === 1) {
-      spinner.start();
-      createRsaFile();
-      spinner.succeed(chalk.blue("Successfully Reset RSA File."));
-      setTimeout(() => {
-        generateKeyMain();
-      }, 1000);
-    } else if (res === 3) {
+      // }
+      // else if (res === 1) {
+      //   spinner.start();
+      //   createRsaFile();
+      //   spinner.succeed(chalk.blue("Successfully Reset RSA File."));
+      //   setTimeout(() => {
+      //     generateKeyMain();
+      //   }, 1000);
+    } else if (res === 2) {
       console.log(chalk.red("Exiting Program."));
       process.exit(1);
-    } else if (res === 2) {
+    } else if (res === 1) {
       spinner.start(chalk.blue("Returning To Main Menu."));
       setTimeout(() => {
         main();
