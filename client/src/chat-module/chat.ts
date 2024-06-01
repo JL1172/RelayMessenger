@@ -90,6 +90,7 @@ export async function mainChat() {
         while (true) {
           const message = rl.question("Enter Your Message: ");
           if (message === "exit") {
+            // console.log(message)
             ws.close();
           }
             const encryptedMessage = encrypt(message, rpubKey);
