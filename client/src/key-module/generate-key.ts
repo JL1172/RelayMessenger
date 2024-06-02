@@ -30,7 +30,7 @@ function createRsaFile() {
 function generateKey() {
   try {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
-      modulusLength: 2048,
+      modulusLength: 4096,
     });
     const PUB = publicKey.export({ type: "pkcs1", format: "pem" });
     const PRIV = privateKey.export({ type: "pkcs1", format: "pem" });

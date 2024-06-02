@@ -45,26 +45,10 @@ function displayHeading() {
   console.log(chalk.cyan(chatHeading()));
 }
 function encrypt(message: string, pubKey: string) {
-  const buffer = Buffer.from(message, "utf-8");
-  const encrypted = crypto.publicEncrypt(
-    {
-      key: pubKey,
-      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-    },
-    buffer
-  );
-  console.log(encrypted);
-  return encrypted.toString("base64");
+  return message;
 }
 function decrypt(encryptedMessage: Buffer, privKey: string) {
-  const decrypted = crypto.privateDecrypt(
-    {
-      key: privKey,
-      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-    },
-    encryptedMessage
-  );
-  return decrypted.toString("utf-8");
+  return encryptedMessage.toString("utf-8");
 }
 
 export async function mainChat() {
