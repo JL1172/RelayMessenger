@@ -25,16 +25,7 @@ export async function main() {
         generateKeyMain();
         break;
       case 1:
-        // spinner.start("Loading...");
-        // setTimeout(() => {
-        //   spinner.succeed("Connected Successfully");
-        // }, 1000);
         mainChat();
-        // const execPromise = util.promisify(exec);
-        // const { stdout, stderr } = await execPromise(
-        // "cd chat-module && npx ts-node chat.ts"
-        // );
-        // console.log(stdout, stderr);
         break;
       case 2:
         console.log(chalk.red("Closing Program"));
