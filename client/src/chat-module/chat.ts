@@ -45,14 +45,24 @@ function displayHeading() {
   console.log(chalk.cyan(chatHeading()));
 }
 function encrypt(message: string, pubKey: string) {
-  const buffer = Buffer.from(message, "utf-8");
-  const encrypted = crypto.publicEncrypt(pubKey, buffer);
-  return encrypted.toString("base64");
+  // const buffer = Buffer.from(message, "utf-8");
+  // const encrypted = crypto.publicEncrypt(
+  //   // { key: pubKey, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING },
+  //   pubKey,
+  //   buffer
+  // );
+  // return encrypted.toString("base64");
+  return message;
 }
-function decrypt(encryptedMessage: any, privKey: string) {
-  const buffer = Buffer.from(encryptedMessage, "base64");
-  const decrypted = crypto.publicDecrypt(privKey, encryptedMessage);
-  return decrypted.toString("utf-8");
+function decrypt(encryptedMessage: Buffer, privKey: string) {
+  // const buffer = Buffer.from(encryptedMessage, "base64");
+  // const decrypted = crypto.publicDecrypt(
+  //   // { key: privKey, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING },
+  //   privKey,
+  //   buffer
+  // );
+  // return decrypted.toString("utf-8");
+  return encryptedMessage.toString("utf-8");
 }
 export async function mainChat() {
   const rl = readline.createInterface({
@@ -83,7 +93,7 @@ export async function mainChat() {
     });
 
     // Handle incoming WebSocket messages
-    ws.on("message", (data: string) => {
+    ws.on("message", (data: any) => {
       const decryptedMessage = decrypt(data, privateKey);
       console.log(`Unknown Sender: ${decryptedMessage}`);
       rl.prompt();
@@ -97,9 +107,12 @@ export async function mainChat() {
 
     // Handle WebSocket errors
     ws.on("error", (error) => {
-      console.error(`WebSocket error: ${error.message}`);
+      packageError(error + "");
     });
   } catch (err: any) {
     reportError(err);
+    setTimeout(() => {
+      mainChat();
+    }, 3000);
   }
 }
