@@ -3,6 +3,7 @@ import * as rl from "readline-sync";
 import { heading } from "./components/heading";
 import { generateKeyMain } from "./key-module/generate-key";
 import chalk from "chalk";
+import { execSync } from "child_process";
 
 function displayHeading() {
   console.log(chalk.green(heading()));
@@ -21,7 +22,7 @@ export function main() {
       generateKeyMain();
       break;
     case 1:
-      mainChat();
+      execSync("cd src/chat-module && npx ts-node chat.ts" );
       break;
     case 2:
       console.log(chalk.red("Closing Program"));
